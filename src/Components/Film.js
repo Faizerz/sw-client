@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-const dataTypes  = ["characters", "planets", "species", "vehicles", "starships"]
+const dataTypes  = ["characters", "planets", "vehicles", "starships", "species"]
 
 class Film extends Component {
 
@@ -13,6 +13,10 @@ class Film extends Component {
     starships: []
   }
 
+  componentDidMount() {
+    this.getFilmData()
+  }
+
   flip = () => {
     this.setState({
       flipped: !this.state.flipped
@@ -23,7 +27,7 @@ class Film extends Component {
     if(this.state.characters.length === 0){
       dataTypes.forEach(tab => {
         this.props.film[tab].forEach(atr => {
-          let id = parseInt(atr.match(/\d+/)[0])
+          let id = parseInt(atr.match(/\d+/)[0], 10)
           return fetch(atr)
           .then(res => res.json())
           .then(jso => {
@@ -37,11 +41,12 @@ class Film extends Component {
     }
   }
 
+
   render() {
     const { film } = this.props
     const { flipped, characters, species, planets, vehicles, starships } = this.state
     return (
-      <div  className="box" onClick={this.flip} onMouseEnter={this.getFilmData}>
+      <div  className="box">
         {
         flipped
         ? <React.Fragment>
@@ -51,37 +56,44 @@ class Film extends Component {
             <div className="row">
               <div className="col-sm-6 centered">
                 <h5>Characters</h5>
-                  {characters.sort((a, b) => a.name - b.name).map(char => {
-                    return <p className="attrList" data-id={"character "+char.id} key={"character "+char.id}>{char.name}</p>
+                  {characters.sort((a, b) => a.name < b.name ? -1 : 1).map(char => {
+                    return <p className="attrList" key={"character "+char.id} onClick={() => this.props.redirect("people", char.id)}>{char.name}</p>
                   })}
               </div>
               <div className="col-sm-6 centered">
                 <h5>Planets</h5>
-                  {planets.sort((a, b) => a.name - b.name).map(planet => {
-                    return <p className="attrList" data-id={"planet "+planet.id} key={"planet "+planet.id}>{planet.name}</p>
+                  {planets.sort((a, b) => a.name < b.name ? -1 : 1).map(planet => {
+                    return <p className="attrList" key={"planet "+planet.id} onClick={() => this.props.redirect("planets", planet.id)}>{planet.name}</p>
                   })}
                 <h5 className="marginTop">Vehicles</h5>
-                  {vehicles.sort((a, b) => a.name - b.name).map(vehic => {
-                    return <p className="attrList" data-id={"vehicle "+vehic.id} key={"vehicle "+vehic.id}>{vehic.name}</p>
+                  {vehicles.sort((a, b) => a.name < b.name ? -1 : 1).map(vehic => {
+                    return <p className="attrList" key={"vehicle "+vehic.id} onClick={() => this.props.redirect("vehicles", vehic.id)}>{vehic.name}</p>
                   })}
                 <h5 className="marginTop">Starships</h5>
-                  {starships.sort((a, b) => a.name - b.name).map(ship => {
-                    return <p className="attrList" data-id={"ship "+ship.id} key={"starship "+ship.id}>{ship.name}</p>
+                  {starships.sort((a, b) => a.name < b.name ? -1 : 1).map(ship => {
+                    return <p className="attrList" key={"starship "+ship.id} onClick={() => this.props.redirect("starships", ship.id)}>{ship.name}</p>
                   })}
                 <h5 className="marginTop">Species</h5>
-                  {species.sort((a, b) => a.name - b.name).map(spec => {
-                    return <p className="attrList" data-id={"spec "+spec.id} key={"species "+spec.id}>{spec.name}</p>
+                  {species.sort((a, b) => a.name < b.name ? -1 : 1).map(spec => {
+                    return <p className="attrList" data-id={"spec "+spec.id} key={"species "+spec.id} onClick={() => this.props.redirect("species", spec.id)}>{spec.name}</p>
                   })}
+              </div>
+              <div className="col-sm-12 marginTop">
+                <button onClick={this.flip} className="viewMoreBtn">View Less Details...</button>
               </div>
             </div>
           </React.Fragment>
         : <React.Fragment>
-            <h4>Episode {film.episode_id}</h4>
+            <div className="flex">
+              <div className="col-sm-10"><h4>Episode {film.episode_id}</h4></div>
+              <div className="col-sm-2"><button className="faveBtn">♡</button></div>
+            </div>
             <h5>{film.title}</h5>
             <b>Director</b> - {film.director}<br />
             <b>Producer</b> - {film.producer}<br />
             <b>Date</b> - {film.release_date}<br />
             <p className="openingCrawl">{film.opening_crawl}</p>
+            <button onClick={this.flip} className="viewMoreBtn">View More Details...</button>
           </React.Fragment>
         }
       </div>

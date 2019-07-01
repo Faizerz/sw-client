@@ -1,8 +1,6 @@
-import classnames from 'classnames';
 import { connect } from 'react-redux';
 import { fetchRoots } from '../../actions';
 import sentenceCase from 'sentence-case';
-import {	Nav, NavItem, NavLink } from 'reactstrap';
 import React, { Component } from 'react';
 import Planet from '../Planet'
 import Film from '../Film'
@@ -14,13 +12,13 @@ import Vehicle from '../Vehicle'
 
 
 const URL = "https://swapi.co/api"
-const tabNames  = ["people", "planets", "films", "species", "vehicles", "starships"]
+const tabNames  = ["people", "planets", "species", "vehicles", "starships"]
 
 class Home extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			tab: void 0, // TODO(0xdeafcafe): Make this select first tab when root data has loaded
+			tab: void 0,
 			people: [],
 			peopleCount: 0,
 			planets: [],
@@ -33,33 +31,52 @@ class Home extends Component {
 			vehiclesCount: 0,
 			starships: [],
 			starshipsCount: 0,
-			loading: true
+			redirect: false,
+			redirectData: {},
 		};
 	}
+
 
 	componentDidMount() {
 		const { dispatch } = this.props;
 		dispatch(fetchRoots());
 
-		//Total Count for each route retrieved from API
+		this.fetchCounts("films", true)
+
 		tabNames.forEach(tabName => {
-			this.fetchCounts(tabName)
+			this.fetchCounts(tabName, false)
 		})
 	}
 
+/*
+	The API doesn't return all the resources like it says it should. It only returns some so the method used:
+	- Fetch total count within a resource
+	- Iterate through the count and retrieve each individual resource when tabs switched
+*/
 
-	fetchCounts(tabName) {
+
+	fetchCounts(tabName, x) {
 		let fetchUrl = `${URL}/${tabName}/`
 		let countName = tabName+'Count'
 
 		return fetch(fetchUrl)
 		.then(resp => resp.json())
-		.then(jso =>
+		.then(jso => {
 			this.setState({
-				[countName]: jso.count,
-				loading: false
+				[countName]: jso.count
 			})
-		)
+			x ? this.switchTab("films") : null
+		})
+	}
+
+
+	switchTab(tab) {
+		this.setState({ tab, redirect: false })
+		if(this.state[tab].length === 0){
+			for(let n=1; n <= this.state[`${tab}Count`]; n++) {
+				this.fetchData(tab, n)
+			}
+		}
 	}
 
 	fetchData(tabName, n) {
@@ -68,26 +85,36 @@ class Home extends Component {
 		.then(resp => resp.json())
 		.then(jso =>	{
 			jso.id = n
-			this.setState({
-				[tabName]: [...this.state[tabName], jso]
-			})
+			if(jso.detail !== "Not found") {
+				this.setState({
+					[tabName]: [...this.state[tabName], jso]
+				})
+			}
 		})
 	}
 
-	//Had to iterate through the 'Count' of each route as the URL on the API only returns 10 results
-	switchTab(tab) {
-		this.setState({ tab });
-		if(this.state[tab].length !== this.state[`${tab}Count`]){
-			for(let n=1; n <= this.state[`${tab}Count`]; n++) {
-				this.fetchData(tab, n)
+	redirect = (tab, id) => {
+		let fetchUrl = `${URL}/${tab}/${id}/`
+		return fetch(fetchUrl)
+		.then(resp => resp.json())
+		.then(jso =>	{
+			jso.id = id
+			if(jso.detail !== "Not found") {
+				this.setState({
+					tab: "",
+					redirectData: jso,
+					redirect: true,
+					redirectTab: tab
+				})
 			}
-		}
+		})
 	}
 
 
+
 	renderRoots() {
-		const { roots } = this.props;
-		const { tab: activeTab, planets, films, species, vehicles, starships, people } = this.state;
+		const { roots } = this.props
+		const { tab: activeTab, planets, films, species, vehicles, starships, people, redirect, redirectData, redirectTab } = this.state
 
 		if (!roots.payload)
 			return null;
@@ -96,35 +123,49 @@ class Home extends Component {
 
 		return (
 			<div className={'mt-3'}>
-				<Nav tabs>
+				<div className="tabItems white">
 					{keys.map(k => (
-						<NavItem key={k}>
-							<NavLink
-								className={classnames({ active: activeTab === k })}
-								onClick={() => this.switchTab(k)}
-							>
+						activeTab === k
+						?	<div className="tab white activeTab" key={k} onClick={() => this.switchTab(k)}>
 								{sentenceCase(k)}
-							</NavLink>
-						</NavItem>
+							</div>
+						: <div className="tab white" key={k} onClick={() => this.switchTab(k)}>
+								{sentenceCase(k)}
+							</div>
 					))}
-				</Nav>
+				</div>
+
 				<div className="tabContainer">
-					{this.state.loading && <code>Loading...</code>}
-					{activeTab === 'planets' && planets.sort((a, b) => a.name - b.name).map(planet => <Planet key={planet.id} planet={planet} />)}
-					{activeTab === 'films' && films.sort((a, b) => a.episode_id - b.episode_id).map(film => <Film key={film.id} film={film} />)}
-					{activeTab === 'species' && species.sort((a, b) => a.name - b.name).map(specie => <Specie key={specie.id} specie={specie} />)}
-					{activeTab === 'vehicles' && vehicles.sort((a, b) => a.name - b.name).map(vehicle => <Vehicle key={vehicle.id} vehicle={vehicle} />)}
-					{activeTab === 'starships' && starships.sort((a, b) => a.name - b.name).map(starship => <Starship key={starship.id} starship={starship} />)}
-					{activeTab === 'people' && people.sort((a, b) => a.name - b.name).map(peep => <Person key={peep.id} person={peep} />)}
+					{
+						redirect
+						?	<React.Fragment>
+								{redirectTab === 'planets' && <Planet planet={redirectData} redirect={this.redirect} />}
+								{redirectTab === 'films' && <Film film={redirectData} redirect={this.redirect} />}
+								{redirectTab === 'species' && <Specie specie={redirectData} redirect={this.redirect}  />}
+								{redirectTab === 'vehicles' && <Vehicle vehicle={redirectData} redirect={this.redirect}  />}
+								{redirectTab === 'starships' && <Starship starship={redirectData} redirect={this.redirect}  />}
+								{redirectTab === 'people' && <Person person={redirectData} redirect={this.redirect}  />}
+							</React.Fragment>
+						:	<React.Fragment>
+								{activeTab === 'planets' && planets.sort((a, b) => a.name < b.name ? -1 : 1).map((planet, index) => <Planet key={"planet " + index} planet={planet} redirect={this.redirect}  />)}
+								{activeTab === 'films' && films.sort((a, b) => a.episode_id - b.episode_id).map((film, index) => <Film key={"film " + film.id} film={film} redirect={this.redirect} />)}
+								{activeTab === 'species' && species.sort((a, b) => a.name < b.name ? -1 : 1).map((specie, index) => <Specie key={specie.id} specie={specie} redirect={this.redirect}  />)}
+								{activeTab === 'vehicles' && vehicles.sort((a, b) => a.name < b.name ? -1 : 1).map(vehicle => <Vehicle key={vehicle.id} vehicle={vehicle} redirect={this.redirect}  />)}
+								{activeTab === 'starships' && starships.sort((a, b) => a.name < b.name ? -1 : 1).map(starship => <Starship key={starship.id} starship={starship} redirect={this.redirect}  />)}
+								{activeTab === 'people' && people.sort((a, b) => a.name < b.name ? -1 : 1).map(peep => <Person key={peep.id} person={peep} redirect={this.redirect}  />)}
+							</React.Fragment>
+					}
 				</div>
 			</div>
-		);
+		)
 	}
 
 	render() {
+
 		return (
 			<div className={'Home'}>
-				<h1>{'My little Star Wars App 👾'}</h1>
+				<a href="/"><h1 className="appTitle white">Star Wars App</h1></a>
+				<h5 className="appSubTitle white">Cuvva Test - Faiz Abbas</h5>
 				{this.renderRoots()}
 			</div>
 		);
