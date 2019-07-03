@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import loadgif from '../images/load.gif'
+
 
 const dataTypes = ["films", "pilots"]
 
@@ -7,11 +9,18 @@ class Starship extends Component {
   state = {
     flipped: false,
     films: [],
-    pilots: []
+    pilots: [],
+    loading: true,
+    repeat: false,
+    favourite: true
   }
 
   componentDidMount() {
-    this.getStarshipData()
+    if(localStorage.getItem(`starships ${this.props.starship.id}`)){
+      this.setState({favourite: true})
+    } else {
+      this.setState({favourite: false})
+    }
   }
 
   flip = () => {
@@ -21,9 +30,11 @@ class Starship extends Component {
   }
 
   getStarshipData = () => {
-    if(this.state.films.length === 0 && this.state.pilots.length === 0){
+    if(this.state.films.length === 0 && this.state.pilots.length === 0 && !this.state.repeat){
+      this.setState({repeat: true})
+      const { starship } = this.props
       dataTypes.forEach(tab => {
-        this.props.starship[tab].forEach(atr => {
+        starship[tab].forEach(atr => {
           let id = parseInt(atr.match(/\d+/)[0], 10)
           return fetch(atr)
           .then(res => res.json())
@@ -34,6 +45,10 @@ class Starship extends Component {
                 [tab]: [...this.state[tab], jso]
               })
             }
+
+            if(starship.films.length === this.state.films.length && starship.pilots.length === this.state.pilots.length) {
+              this.setState({loading: false})
+            }
           })
         })
       })
@@ -41,16 +56,17 @@ class Starship extends Component {
   }
 
   render() {
-    const { flipped, pilots, films } = this.state
+    const { flipped, pilots, films, loading, favourite } = this.state
     const { starship } = this.props
 
     return (
-      <div  className="box">
+      <div  className="box" onMouseEnter={() => this.getStarshipData()}>
         {
         flipped
         ? <React.Fragment>
             <div className="col-sm-12 centered">
               <h4>Starship Info</h4>
+              {loading ? <p><img className="r2d2" src={loadgif} alt="loading..." /> Loading Content... <img className="r2d2" src={loadgif} alt="loading..." /></p> : null}
             </div>
             <div className="row">
               <div className="col-sm-6 centered">
@@ -81,7 +97,13 @@ class Starship extends Component {
         : <React.Fragment>
             <div className="flex">
               <div className="col-sm-10"><h4>{starship.name}</h4></div>
-              <div className="col-sm-2"><button className="faveBtn">♡</button></div>
+              <div className="col-sm-2">
+                {
+                  favourite
+                  ? <button className="activeFave" onClick={() => {this.props.favourite("starships", this.props.starship.id, false); this.setState({favourite: false})}}>♡</button>
+                  : <button className="faveBtn" onClick={() => {this.props.favourite("starships", this.props.starship.id, true); this.setState({favourite: true})}}>♡</button>
+                }
+              </div>
             </div>
             <b>Crew</b> - {starship.crew}<br />
             <b>Max Speed</b> - {starship.max_atmosphering_speed}<br />
@@ -89,7 +111,7 @@ class Starship extends Component {
             <b>Passengers</b> - {starship.passengers}<br />
             <b>Class</b> - {starship.starship_class}<br />
             <b>Cost</b> - {starship.cost_in_credits} credits<br />
-            <button onClick={this.flip} className="viewMoreBtn marginTop">View More Details...</button>
+            <button onClick={() => {this.flip(); this.getStarshipData()}} className="viewMoreBtn marginTop">View More Details...</button>
           </React.Fragment>
         }
       </div>

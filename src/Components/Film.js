@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import loadgif from '../images/load.gif'
+
 
 const dataTypes  = ["characters", "planets", "vehicles", "starships", "species"]
 
@@ -10,11 +12,18 @@ class Film extends Component {
     planets: [],
     species: [],
     vehicles: [],
-    starships: []
+    starships: [],
+    loading: true,
+    repeat: false,
+    favourite: true
   }
 
   componentDidMount() {
-    this.getFilmData()
+    if(localStorage.getItem(`films ${this.props.film.id}`)){
+      this.setState({favourite: true})
+    } else {
+      this.setState({favourite: false})
+    }
   }
 
   flip = () => {
@@ -23,35 +32,47 @@ class Film extends Component {
     })
   }
 
+
   getFilmData = () => {
-    if(this.state.characters.length === 0){
+    if(this.state.characters.length === 0 && this.state.loading && !this.state.repeat){
+      this.setState({repeat: true})
+      const { film } = this.props
       dataTypes.forEach(tab => {
-        this.props.film[tab].forEach(atr => {
+        film[tab].forEach(atr => {
           let id = parseInt(atr.match(/\d+/)[0], 10)
           return fetch(atr)
           .then(res => res.json())
           .then(jso => {
             jso.id = id
             this.setState({
-              [tab]: [...this.state[tab], jso]
+              [tab]: [...this.state[tab], jso],
+            })
+
+            if(film.characters.length === this.state.characters.length &&
+               film.planets.length === this.state.planets.length &&
+               film.species.length === this.state.species.length &&
+               film.starships.length === this.state.starships.length &&
+               film.vehicles.length === this.state.vehicles.length) {
+                 this.setState({loading: false})
+               }
             })
           })
         })
-      })
+      }
     }
-  }
 
 
   render() {
     const { film } = this.props
-    const { flipped, characters, species, planets, vehicles, starships } = this.state
+    const { flipped, characters, species, planets, vehicles, starships, loading, favourite } = this.state
     return (
-      <div  className="box">
+      <div  className="box" onMouseEnter={() => this.getFilmData()}>
         {
         flipped
         ? <React.Fragment>
             <div className="col-sm-12 centered">
               <h4>Film Content</h4>
+              {loading ? <p><img className="r2d2" src={loadgif} alt="loading..." /> Loading Content... <img className="r2d2" src={loadgif} alt="loading..." /></p> : null}
             </div>
             <div className="row">
               <div className="col-sm-6 centered">
@@ -86,20 +107,26 @@ class Film extends Component {
         : <React.Fragment>
             <div className="flex">
               <div className="col-sm-10"><h4>Episode {film.episode_id}</h4></div>
-              <div className="col-sm-2"><button className="faveBtn">♡</button></div>
+              <div className="col-sm-2">
+                {
+                  favourite
+                  ? <button className="activeFave" onClick={() => {this.props.favourite("films", this.props.film.id, false); this.setState({favourite: false})}}>♡</button>
+                  : <button className="faveBtn" onClick={() => {this.props.favourite("films", this.props.film.id, true); this.setState({favourite: true})}}>♡</button>
+                }
+              </div>
             </div>
             <h5>{film.title}</h5>
             <b>Director</b> - {film.director}<br />
             <b>Producer</b> - {film.producer}<br />
             <b>Date</b> - {film.release_date}<br />
             <p className="openingCrawl">{film.opening_crawl}</p>
-            <button onClick={this.flip} className="viewMoreBtn">View More Details...</button>
+            <button onClick={() => { this.flip(); this.getFilmData()}} className="viewMoreBtn">View More Details...</button>
           </React.Fragment>
         }
       </div>
-    );
+    )
   }
 
 }
 
-export default Film;
+export default Film

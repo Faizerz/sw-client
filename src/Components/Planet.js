@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import loadgif from '../images/load.gif'
+
 
 const dataTypes  = ["films", "residents"]
 
@@ -7,11 +9,18 @@ class Planet extends Component {
   state = {
     flipped: false,
     residents: [],
-    films: []
+    films: [],
+    loading: true,
+    repeat: false,
+    favourite: true
   }
 
   componentDidMount() {
-    this.getPlanetData()
+    if(localStorage.getItem(`planets ${this.props.planet.id}`)){
+      this.setState({favourite: true})
+    } else {
+      this.setState({favourite: false})
+    }
   }
 
   flip = () => {
@@ -21,9 +30,11 @@ class Planet extends Component {
   }
 
   getPlanetData = () => {
-    if(this.state.residents.length === 0 && this.state.films.length === 0){
+    if(this.state.loading && this.state.films.length === 0 && !this.state.repeat){
+      this.setState({repeat: true})
+      const { planet } = this.props
       dataTypes.forEach(tab => {
-        this.props.planet[tab].forEach(atr => {
+        planet[tab].forEach(atr => {
           let id = parseInt(atr.match(/\d+/)[0], 10)
           return fetch(atr)
           .then(res => res.json())
@@ -32,6 +43,10 @@ class Planet extends Component {
             this.setState({
               [tab]: [...this.state[tab], jso]
             })
+
+            if(planet.films.length === this.state.films.length && planet.residents.length === this.state.residents.length) {
+              this.setState({loading: false})
+            }
           })
         })
       })
@@ -39,15 +54,16 @@ class Planet extends Component {
   }
 
   render() {
-    const { flipped, residents, films } = this.state
+    const { flipped, residents, films, loading, favourite } = this.state
     const { planet } = this.props
     return (
-      <div  className="box">
+      <div  className="box" onMouseEnter={() => this.getPlanetData()}>
         {
         flipped
         ? <React.Fragment>
             <div className="col-sm-12 centered">
               <h4>Planet Info</h4>
+              {loading ? <p><img className="r2d2" src={loadgif} alt="loading..." /> Loading Content... <img className="r2d2" src={loadgif} alt="loading..." /></p> : null}
             </div>
             <div className="row">
               <div className="col-sm-6 centered">
@@ -78,7 +94,13 @@ class Planet extends Component {
         : <React.Fragment>
             <div className="flex">
               <div className="col-sm-10"><h4>{planet.name}</h4></div>
-              <div className="col-sm-2"><button className="faveBtn">♡</button></div>
+              <div className="col-sm-2">
+                {
+                  favourite
+                  ? <button className="activeFave" onClick={() => {this.props.favourite("planets", this.props.planet.id, false); this.setState({favourite: false})}}>♡</button>
+                  : <button className="faveBtn" onClick={() => {this.props.favourite("planets", this.props.planet.id, true); this.setState({favourite: true})}}>♡</button>
+                }
+              </div>
             </div>
             <b>Population</b> - {planet.population}<br />
             <b>Climate</b> - {planet.climate.charAt(0).toUpperCase() + planet.climate.slice(1)}<br />
@@ -87,7 +109,7 @@ class Planet extends Component {
             <b>Orbital Period</b> - {planet.orbital_period}<br />
             <b>Gravity</b> - {planet.gravity}<br />
             <b>Surface Water</b> - {planet.surface_water}<br />
-            <button onClick={this.flip} className="viewMoreBtn marginTop">View More Details...</button>
+            <button onClick={() => {this.flip(); this.getPlanetData()}} className="viewMoreBtn marginTop">View More Details...</button>
           </React.Fragment>
         }
       </div>

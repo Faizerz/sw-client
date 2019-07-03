@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import loadgif from '../images/load.gif'
+
 
 const dataTypes = ["films", "pilots"]
 
@@ -7,11 +9,18 @@ class Vehicle extends Component {
   state = {
     flipped: false,
     films: [],
-    pilots: []
+    pilots: [],
+    loading: true,
+    repeat: false,
+    favourite: true
   }
 
   componentDidMount() {
-    this.getVehicleData()
+    if(localStorage.getItem(`vehicles ${this.props.vehicle.id}`)){
+      this.setState({favourite: true})
+    } else {
+      this.setState({favourite: false})
+    }
   }
 
   flip = () => {
@@ -21,9 +30,11 @@ class Vehicle extends Component {
   }
 
   getVehicleData = () => {
-    if(this.state.films.length === 0 && this.state.pilots.length === 0){
+    if(this.state.films.length === 0 && this.state.pilots.length === 0 && !this.state.repeat){
+      this.setState({repeat:true})
+      const { vehicle } = this.props
       dataTypes.forEach(tab => {
-        this.props.vehicle[tab].forEach(atr => {
+        vehicle[tab].forEach(atr => {
           let id = parseInt(atr.match(/\d+/)[0], 10)
           return fetch(atr)
           .then(res => res.json())
@@ -34,6 +45,10 @@ class Vehicle extends Component {
                 [tab]: [...this.state[tab], jso]
               })
             }
+
+            if(vehicle.films.length === this.state.films.length && vehicle.pilots.length === this.state.pilots.length) {
+              this.setState({loading: false})
+            }
           })
         })
       })
@@ -41,7 +56,7 @@ class Vehicle extends Component {
   }
 
   render() {
-    const { flipped, pilots, films } = this.state
+    const { flipped, pilots, films, loading, favourite } = this.state
     const { vehicle } = this.props
 
     return (
@@ -51,6 +66,7 @@ class Vehicle extends Component {
         ? <React.Fragment>
             <div className="col-sm-12 centered">
               <h4>Vehicle Info</h4>
+              {loading ? <p><img className="r2d2" src={loadgif} alt="loading..." /> Loading Content... <img className="r2d2" src={loadgif} alt="loading..." /></p> : null}
             </div>
             <div className="row">
               <div className="col-sm-6 centered">
@@ -81,7 +97,13 @@ class Vehicle extends Component {
         : <React.Fragment>
             <div className="flex">
               <div className="col-sm-10"><h4>{vehicle.name}</h4></div>
-              <div className="col-sm-2"><button className="faveBtn">♡</button></div>
+              <div className="col-sm-2">
+                {
+                  favourite
+                  ? <button className="activeFave" onClick={() => {this.props.favourite("vehicles", this.props.vehicle.id, false); this.setState({favourite: false})}}>♡</button>
+                  : <button className="faveBtn" onClick={() => {this.props.favourite("vehicles", this.props.vehicle.id, true); this.setState({favourite: true})}}>♡</button>
+                }
+              </div>
             </div>
             <b>Crew</b> - {vehicle.crew}<br />
             <b>Max Speed</b> - {vehicle.max_atmosphering_speed}<br />
@@ -89,7 +111,7 @@ class Vehicle extends Component {
             <b>Passengers</b> - {vehicle.passengers}<br />
             <b>Class</b> - {vehicle.vehicle_class}<br />
             <b>Cost</b> - {vehicle.cost_in_credits}<br />
-            <button onClick={this.flip} className="viewMoreBtn marginTop">View More Details...</button>
+            <button onClick={() => {this.flip(); this.getVehicleData()}} className="viewMoreBtn marginTop">View More Details...</button>
           </React.Fragment>
         }
       </div>
