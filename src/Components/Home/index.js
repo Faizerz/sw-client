@@ -82,6 +82,7 @@ class Home extends Component {
 
 	fetchData(tabName, n) {
 		let fetchUrl = `${URL}/${tabName}/${n}/`
+		this.setState({loading: true})
 		return fetch(fetchUrl)
 		.then(resp => resp.json())
 		.then(jso =>	{
@@ -91,7 +92,9 @@ class Home extends Component {
 					[tabName]: [...this.state[tabName], jso]
 				})
 			}
-			if(this.state.films.length === 7) {this.setState({loading: false})}
+			if(this.state[tabName].length === this.state[`${tabName}Count`]) {
+				this.setState({loading: false})
+			}
 		})
 	}
 
@@ -115,14 +118,7 @@ class Home extends Component {
 	favourite = (tab, id, activate) => {
 		let fetchUrl = `${URL}/${tab}/${id}/`
 		if(activate === true){
-			return fetch(fetchUrl)
-			.then(resp => resp.json())
-			.then(jso =>	{
-				jso.id = id
-				if(jso.detail !== "Not found") {
-					localStorage.setItem(`${tab} ${id}`, JSON.stringify(jso))
-				}
-			})
+			localStorage.setItem(`${tab} ${id}`, "favourited")
 		} else {
 			localStorage.removeItem(`${tab} ${id}`)
 		}
@@ -151,7 +147,7 @@ class Home extends Component {
 					))}
 				</div>
 
-				{loading ? <h5 className="homeLoad"><img className="r2d2" src={loadgif} alt="loading..." /> Content Loading... <img className="r2d2" src={loadgif} alt="loading..." /><br /></h5> : null}
+				{loading ? <h5 className="homeLoad"><img className="r2d2" src={loadgif} alt="loading..." /> Loading Content... <img className="r2d2" src={loadgif} alt="loading..." /><br /></h5> : null}
 				<div className="tabContainer">
 					{
 						redirect

@@ -63,7 +63,7 @@ class Planet extends Component {
         ? <React.Fragment>
             <div className="col-sm-12 centered">
               <h4>Planet Info</h4>
-              {loading ? <p><img className="r2d2" src={loadgif} alt="loading..." /> Loading Content... <img className="r2d2" src={loadgif} alt="loading..." /></p> : null}
+              {!loading ? <p><img className="r2d2" src={loadgif} alt="loading..." /> Loading Content... <img className="r2d2" src={loadgif} alt="loading..." /></p> : null}
             </div>
             <div className="row">
               <div className="col-sm-6 centered">
