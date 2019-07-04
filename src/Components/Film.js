@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import loadgif from '../images/load.gif'
+import like from '../images/like2.png'
+import unlike from '../images/like1.png'
 
 
 const dataTypes  = ["characters", "planets", "vehicles", "starships", "species"]
@@ -99,19 +101,19 @@ class Film extends Component {
                     return <p className="attrList" data-id={"spec "+spec.id} key={"species "+spec.id} onClick={() => this.props.redirect("species", spec.id)}>{spec.name}</p>
                   })}
               </div>
-              <div className="col-sm-12 marginTop">
+              <div className="col-sm-12 marginTop centered">
                 <button onClick={this.flip} className="viewMoreBtn">View Less Details...</button>
               </div>
             </div>
           </React.Fragment>
         : <React.Fragment>
             <div className="flex">
-              <div className="col-sm-10"><h4>Episode {film.episode_id}</h4></div>
+              <div className="col-sm-10"><h4 className="filmTitle">Episode {film.episode_id}</h4></div>
               <div className="col-sm-2">
                 {
                   favourite
-                  ? <button className="activeFave" onClick={() => {this.props.favourite("films", this.props.film.id, false); this.setState({favourite: false})}}>♡</button>
-                  : <button className="faveBtn" onClick={() => {this.props.favourite("films", this.props.film.id, true); this.setState({favourite: true})}}>♡</button>
+                  ? <img src={like} className="likeBtn" alt="like btn" onClick={() => {this.props.favourite("films", this.props.film.id, false); this.setState({favourite: false})}} />
+                  : <img src={unlike} className="unlikeBtn" alt="unlike btn" onClick={() => {this.props.favourite("films", this.props.film.id, true); this.setState({favourite: true})}} />
                 }
               </div>
             </div>
@@ -120,7 +122,9 @@ class Film extends Component {
             <b>Producer</b> - {film.producer}<br />
             <b>Date</b> - {film.release_date}<br />
             <p className="openingCrawl">{film.opening_crawl}</p>
-            <button onClick={() => { this.flip(); this.getFilmData()}} className="viewMoreBtn">View More Details...</button>
+            <div className="centered marginTop">
+              <button onClick={() => { this.flip(); this.getFilmData()}} className="viewMoreBtn">View More Details...</button>
+            </div>
           </React.Fragment>
         }
       </div>

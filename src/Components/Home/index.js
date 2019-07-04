@@ -92,7 +92,13 @@ class Home extends Component {
 					[tabName]: [...this.state[tabName], jso]
 				})
 			}
-			if(this.state[tabName].length === this.state[`${tabName}Count`]) {
+
+			//Conditions to show all content is loaded. The API count doesn't actually match the number of resources for all categories -.-
+			if((tabName === 'people' && this.state.people.length === 86)
+				||(tabName === 'starships' && this.state.starships.length === 37)
+				||(tabName === 'vehicles' && this.state.vehicles.length === 19)
+				||(this.state[tabName].length === this.state[`${tabName}Count`])
+				||this.state.redirect === false) {
 				this.setState({loading: false})
 			}
 		})
@@ -109,14 +115,14 @@ class Home extends Component {
 					tab: "",
 					redirectData: jso,
 					redirect: true,
-					redirectTab: tab
+					redirectTab: tab,
+					loading: false
 				})
 			}
 		})
 	}
 
 	favourite = (tab, id, activate) => {
-		let fetchUrl = `${URL}/${tab}/${id}/`
 		if(activate === true){
 			localStorage.setItem(`${tab} ${id}`, "favourited")
 		} else {

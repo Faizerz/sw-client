@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import loadgif from '../images/load.gif'
+import like from '../images/like2.png'
+import unlike from '../images/like1.png'
 
 
 const dataTypes = ["films", "people"]
@@ -102,8 +104,8 @@ class Specie extends Component {
               <div className="col-sm-2">
                 {
                   favourite
-                  ? <button className="activeFave" onClick={() => {this.props.favourite("species", this.props.specie.id, false); this.setState({favourite: false})}}>♡</button>
-                  : <button className="faveBtn" onClick={() => {this.props.favourite("species", this.props.specie.id, true); this.setState({favourite: true})}}>♡</button>
+                  ? <img src={like} className="likeBtn" alt="like btn" onClick={() => {this.props.favourite("species", this.props.specie.id, false); this.setState({favourite: false})}} />
+                  : <img src={unlike} className="unlikeBtn" alt="unlike btn" onClick={() => {this.props.favourite("people", this.props.person.id, true); this.setState({favourite: true})}} />
                 }
               </div>
             </div>
