@@ -111,7 +111,9 @@ class Planet extends Component {
             <b>Orbital Period</b> - {planet.orbital_period}<br />
             <b>Gravity</b> - {planet.gravity}<br />
             <b>Surface Water</b> - {planet.surface_water}<br />
-            <button onClick={() => {this.flip(); this.getPlanetData()}} className="viewMoreBtn marginTop">View More Details...</button>
+            <div className="centered">
+              <button onClick={() => {this.flip(); this.getPlanetData()}} className="viewMoreBtn marginTop">View More Details...</button>
+            </div>
           </React.Fragment>
         }
       </div>

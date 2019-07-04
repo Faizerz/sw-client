@@ -113,7 +113,9 @@ class Vehicle extends Component {
             <b>Passengers</b> - {vehicle.passengers}<br />
             <b>Class</b> - {vehicle.vehicle_class}<br />
             <b>Cost</b> - {vehicle.cost_in_credits}<br />
-            <button onClick={() => {this.flip(); this.getVehicleData()}} className="viewMoreBtn marginTop">View More Details...</button>
+            <div className="centered">
+              <button onClick={() => {this.flip(); this.getVehicleData()}} className="viewMoreBtn marginTop">View More Details...</button>
+            </div>
           </React.Fragment>
         }
       </div>

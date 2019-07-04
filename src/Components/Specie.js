@@ -115,7 +115,9 @@ class Specie extends Component {
             <b>Avg Height</b> - {specie.average_height}<br />
             <b>Avg Lifespan</b> - {specie.average_lifespan}<br />
             <b>Skin Colours</b> - {specie.skin_colors}<br />
-            <button onClick={() => {this.flip(); this.getSpecieData()}} className="viewMoreBtn">View More Details...</button>
+            <div className="centered">
+              <button onClick={() => {this.flip(); this.getSpecieData()}} className="viewMoreBtn">View More Details...</button>
+            </div>
           </React.Fragment>
         }
       </div>

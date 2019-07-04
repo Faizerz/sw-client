@@ -134,7 +134,9 @@ class Person extends Component {
             <b>Eye Colour</b> - {person.eye_color}<br />
             <b>Hair Colour</b> - {person.hair_color}<br />
             <b>Skin Colour</b> - {person.skin_color}<br />
-            <button onClick={() => {this.flip(); this.getPersonData()}} className="viewMoreBtn">View More Details...</button>
+            <div className="centered">
+              <button onClick={() => {this.flip(); this.getPersonData()}} className="viewMoreBtn">View More Details...</button>
+            </div>
           </React.Fragment>
         }
       </div>

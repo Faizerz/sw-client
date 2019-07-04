@@ -113,7 +113,9 @@ class Starship extends Component {
             <b>Passengers</b> - {starship.passengers}<br />
             <b>Class</b> - {starship.starship_class}<br />
             <b>Cost</b> - {starship.cost_in_credits} credits<br />
-            <button onClick={() => {this.flip(); this.getStarshipData()}} className="viewMoreBtn marginTop">View More Details...</button>
+            <div className="centered">
+              <button onClick={() => {this.flip(); this.getStarshipData()}} className="viewMoreBtn marginTop">View More Details...</button>
+            </div>
           </React.Fragment>
         }
       </div>
